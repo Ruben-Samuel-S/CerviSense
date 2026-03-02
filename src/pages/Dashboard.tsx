@@ -2,25 +2,26 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Activity, TrendingUp } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, Clock, Watch, ArrowDown } from "lucide-react";
 
 const mockData = [
-  { time: "9:00", angle: 12 },
-  { time: "9:30", angle: 18 },
-  { time: "10:00", angle: 22 },
-  { time: "10:30", angle: 15 },
-  { time: "11:00", angle: 28 },
-  { time: "11:30", angle: 35 },
-  { time: "12:00", angle: 20 },
-  { time: "12:30", angle: 14 },
-  { time: "13:00", angle: 10 },
-  { time: "13:30", angle: 25 },
-  { time: "14:00", angle: 18 },
+  { time: "9:00", angle: 12 }, { time: "9:30", angle: 18 }, { time: "10:00", angle: 22 },
+  { time: "10:30", angle: 15 }, { time: "11:00", angle: 28 }, { time: "11:30", angle: 35 },
+  { time: "12:00", angle: 20 }, { time: "12:30", angle: 14 }, { time: "13:00", angle: 10 },
+  { time: "13:30", angle: 25 }, { time: "14:00", angle: 18 },
 ];
 
 const currentAngle = 18;
 const healthScore = 76;
+const forwardHeadIndex = 32;
+const avgCorrectionTime = 4.2;
+const activeWearTime = 4.5;
+const weeklyImprovement = 12;
+const sparklineData = [
+  { v: 5 }, { v: 8 }, { v: 6 }, { v: 10 }, { v: 9 }, { v: 11 }, { v: 12 },
+];
 
 const getStatus = (angle: number) => {
   if (angle <= 15) return { label: "Good", color: "bg-success text-background" };
@@ -28,9 +29,16 @@ const getStatus = (angle: number) => {
   return { label: "Poor", color: "bg-danger text-foreground" };
 };
 
+const getFhiBadge = (fhi: number) => {
+  if (fhi < 25) return { label: "Normal", color: "bg-success text-background" };
+  if (fhi <= 50) return { label: "Elevated", color: "bg-warning text-background" };
+  return { label: "High Risk", color: "bg-danger text-foreground" };
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const status = getStatus(currentAngle);
+  const fhiBadge = getFhiBadge(forwardHeadIndex);
 
   return (
     <div className="min-h-screen bg-background px-4 py-6">
@@ -46,12 +54,8 @@ const Dashboard = () => {
           <CardContent className="flex flex-col items-center py-8">
             <Activity className="mb-2 h-6 w-6 text-primary" />
             <p className="text-sm text-muted-foreground">Current Neck Angle</p>
-            <div className="mt-1 text-6xl font-bold tracking-tighter text-foreground">
-              {currentAngle}°
-            </div>
-            <Badge className={`mt-3 ${status.color} border-0 px-4 py-1 text-sm font-semibold`}>
-              {status.label}
-            </Badge>
+            <div className="mt-1 text-6xl font-bold tracking-tighter text-foreground">{currentAngle}°</div>
+            <Badge className={`mt-3 ${status.color} border-0 px-4 py-1 text-sm font-semibold`}>{status.label}</Badge>
           </CardContent>
         </Card>
 
@@ -74,22 +78,79 @@ const Dashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(217 33% 25%)" />
                 <XAxis dataKey="time" tick={{ fill: "hsl(215 20% 55%)", fontSize: 11 }} stroke="hsl(217 33% 25%)" />
                 <YAxis tick={{ fill: "hsl(215 20% 55%)", fontSize: 11 }} stroke="hsl(217 33% 25%)" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(217 33% 17%)",
-                    border: "1px solid hsl(217 33% 25%)",
-                    borderRadius: "8px",
-                    color: "hsl(210 40% 98%)",
-                  }}
-                />
+                <Tooltip contentStyle={{ backgroundColor: "hsl(217 33% 17%)", border: "1px solid hsl(217 33% 25%)", borderRadius: "8px", color: "hsl(210 40% 98%)" }} />
                 <Line type="monotone" dataKey="angle" stroke="hsl(168 80% 40%)" strokeWidth={2} dot={{ r: 3, fill: "hsl(168 80% 40%)" }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
+        {/* Clinical Metrics */}
+        <div className="animate-fade-in" style={{ animationDelay: "0.35s" }}>
+          <p className="mb-3 text-sm font-medium text-muted-foreground">Clinical Metrics</p>
+          <div className="grid grid-cols-2 gap-3">
+            {/* FHI */}
+            <Card className="animate-fade-in border-border/50 shadow-xl shadow-primary/5" style={{ animationDelay: "0.4s" }}>
+              <CardContent className="flex flex-col items-center py-5 px-3">
+                <AlertTriangle className="mb-1 h-5 w-5 text-warning" />
+                <p className="text-xs text-muted-foreground">Forward Head Index</p>
+                <div className="mt-1 text-3xl font-bold text-foreground">{forwardHeadIndex}%</div>
+                <Badge className={`mt-2 ${fhiBadge.color} border-0 px-3 py-0.5 text-xs font-semibold`}>{fhiBadge.label}</Badge>
+                <p className="mt-1 text-center text-[10px] text-muted-foreground">% of time above safe posture threshold</p>
+              </CardContent>
+            </Card>
+
+            {/* Correction Latency */}
+            <Card className="animate-fade-in border-border/50 shadow-xl shadow-primary/5" style={{ animationDelay: "0.45s" }}>
+              <CardContent className="flex flex-col items-center py-5 px-3">
+                <Clock className="mb-1 h-5 w-5 text-primary" />
+                <p className="text-xs text-muted-foreground">Avg Correction Time</p>
+                <div className="mt-1 flex items-center gap-1">
+                  <span className="text-3xl font-bold text-foreground">{avgCorrectionTime}</span>
+                  <span className="text-sm text-muted-foreground">sec</span>
+                </div>
+                <div className="mt-1 flex items-center gap-1 text-primary">
+                  <ArrowDown className="h-3 w-3" />
+                  <span className="text-xs font-medium">Improving</span>
+                </div>
+                <p className="mt-1 text-center text-[10px] text-muted-foreground">Time to return to neutral after alert</p>
+              </CardContent>
+            </Card>
+
+            {/* Active Wear Time */}
+            <Card className="animate-fade-in border-border/50 shadow-xl shadow-primary/5" style={{ animationDelay: "0.5s" }}>
+              <CardContent className="flex flex-col items-center py-5 px-3">
+                <Watch className="mb-1 h-5 w-5 text-primary" />
+                <p className="text-xs text-muted-foreground">Active Wear Time</p>
+                <div className="mt-1 text-3xl font-bold text-foreground">{activeWearTime} <span className="text-sm font-normal text-muted-foreground">hrs</span></div>
+                <Progress value={(activeWearTime / 6) * 100} className="mt-2 h-2 w-full" />
+                <p className="mt-1 text-[10px] text-muted-foreground">of 6 hr goal</p>
+              </CardContent>
+            </Card>
+
+            {/* Posture Improvement */}
+            <Card className="animate-fade-in border-border/50 shadow-xl shadow-primary/5" style={{ animationDelay: "0.55s" }}>
+              <CardContent className="flex flex-col items-center py-5 px-3">
+                <TrendingUp className="mb-1 h-5 w-5 text-primary" />
+                <p className="text-xs text-muted-foreground">Posture Improvement</p>
+                <div className={`mt-1 text-3xl font-bold ${weeklyImprovement >= 0 ? "text-primary" : "text-danger"}`}>
+                  {weeklyImprovement > 0 ? "+" : ""}{weeklyImprovement}%
+                </div>
+                <p className="text-[10px] text-muted-foreground">vs last week</p>
+                <div className="mt-1 w-full">
+                  <ResponsiveContainer width="100%" height={40}>
+                    <LineChart data={sparklineData}>
+                      <Line type="monotone" dataKey="v" stroke="hsl(168 80% 40%)" strokeWidth={1.5} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
         {/* View Reports */}
-        <Button onClick={() => navigate("/reports")} className="w-full animate-fade-in" style={{ animationDelay: "0.4s" }}>
+        <Button onClick={() => navigate("/reports")} className="w-full animate-fade-in" style={{ animationDelay: "0.6s" }}>
           View Reports
         </Button>
       </div>
