@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Activity, TrendingUp, AlertTriangle, Clock, Watch, ArrowDown } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, Clock, Watch, ArrowDown, FileText } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
 
 const mockData = [
   { time: "9:00", angle: 12 }, { time: "9:30", angle: 18 }, { time: "10:00", angle: 22 },
@@ -14,6 +17,8 @@ const mockData = [
 ];
 
 const currentAngle = 18;
+const confidence = 94;
+const personalizedThreshold = 20;
 const healthScore = 76;
 const forwardHeadIndex = 32;
 const avgCorrectionTime = 4.2;
@@ -24,9 +29,15 @@ const sparklineData = [
 ];
 
 const getStatus = (angle: number) => {
-  if (angle <= 15) return { label: "Good", color: "bg-success text-background" };
-  if (angle <= 25) return { label: "Moderate", color: "bg-warning text-background" };
-  return { label: "Poor", color: "bg-danger text-foreground" };
+  if (angle <= 15) return { label: "Good", color: "bg-success text-background", dot: "bg-success" };
+  if (angle <= 25) return { label: "Risk", color: "bg-warning text-background", dot: "bg-warning" };
+  return { label: "Bad", color: "bg-danger text-foreground", dot: "bg-danger" };
+};
+
+const getRiskLevel = (fhi: number) => {
+  if (fhi < 25) return { label: "Low", color: "text-success" };
+  if (fhi <= 50) return { label: "Medium", color: "text-warning" };
+  return { label: "High", color: "text-danger" };
 };
 
 const getFhiBadge = (fhi: number) => {
@@ -38,15 +49,48 @@ const getFhiBadge = (fhi: number) => {
 const Dashboard = () => {
   const navigate = useNavigate();
   const status = getStatus(currentAngle);
+  const risk = getRiskLevel(forwardHeadIndex);
   const fhiBadge = getFhiBadge(forwardHeadIndex);
+  const [lastGenerated, setLastGenerated] = useState<string>("--");
+
+  const handleGenerate = (type: "Weekly" | "Monthly") => {
+    const ts = new Date().toLocaleString();
+    setLastGenerated(`${type} • ${ts}`);
+    toast.success(`${type} report generated`);
+  };
 
   return (
-    <div className="min-h-screen bg-background px-4 py-6">
+    <div className="min-h-screen bg-background px-4 py-6 pb-24">
       <div className="mx-auto max-w-md space-y-5">
         {/* Header */}
         <div className="animate-fade-in text-center">
           <h1 className="text-3xl font-bold tracking-tight text-primary">CerviSense</h1>
           <p className="text-sm text-muted-foreground">Track. Analyze. Align.</p>
+        </div>
+
+        {/* Top Quick Stats Strip */}
+        <div className="grid grid-cols-3 gap-2 animate-fade-in" style={{ animationDelay: "0.05s" }}>
+          <Card className="border-border/50 shadow-lg shadow-primary/5">
+            <CardContent className="flex flex-col items-center py-3 px-2">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Posture</p>
+              <div className="mt-1 flex items-center gap-1.5">
+                <span className={`h-2 w-2 rounded-full ${status.dot}`} />
+                <span className="text-sm font-bold text-foreground">{status.label}</span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 shadow-lg shadow-primary/5">
+            <CardContent className="flex flex-col items-center py-3 px-2">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Angle</p>
+              <p className="mt-1 text-sm font-bold text-primary">{currentAngle}°</p>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 shadow-lg shadow-primary/5">
+            <CardContent className="flex flex-col items-center py-3 px-2">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Risk</p>
+              <p className={`mt-1 text-sm font-bold ${risk.color}`}>{risk.label}</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Current Angle */}
@@ -55,7 +99,9 @@ const Dashboard = () => {
             <Activity className="mb-2 h-6 w-6 text-primary" />
             <p className="text-sm text-muted-foreground">Current Neck Angle</p>
             <div className="mt-1 text-6xl font-bold tracking-tighter text-foreground">{currentAngle}°</div>
+            <p className="mt-1 text-xs text-muted-foreground">Confidence {confidence}%</p>
             <Badge className={`mt-3 ${status.color} border-0 px-4 py-1 text-sm font-semibold`}>{status.label}</Badge>
+            <p className="mt-2 text-[11px] text-muted-foreground">Personalized threshold: {personalizedThreshold}°</p>
           </CardContent>
         </Card>
 
@@ -66,6 +112,7 @@ const Dashboard = () => {
             <p className="text-sm text-muted-foreground">Health Score</p>
             <div className="mt-1 text-5xl font-bold text-primary">{healthScore}</div>
             <p className="text-xs text-muted-foreground">out of 100</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">Based on personalized AI model</p>
           </CardContent>
         </Card>
 
@@ -89,22 +136,22 @@ const Dashboard = () => {
         <div className="animate-fade-in" style={{ animationDelay: "0.35s" }}>
           <p className="mb-3 text-sm font-medium text-muted-foreground">Clinical Metrics</p>
           <div className="grid grid-cols-2 gap-3">
-            {/* FHI */}
+            {/* Neck Risk % */}
             <Card className="animate-fade-in border-border/50 shadow-xl shadow-primary/5" style={{ animationDelay: "0.4s" }}>
               <CardContent className="flex flex-col items-center py-5 px-3">
                 <AlertTriangle className="mb-1 h-5 w-5 text-warning" />
-                <p className="text-xs text-muted-foreground">Forward Head Index</p>
+                <p className="text-xs text-muted-foreground">Neck Risk %</p>
                 <div className="mt-1 text-3xl font-bold text-foreground">{forwardHeadIndex}%</div>
                 <Badge className={`mt-2 ${fhiBadge.color} border-0 px-3 py-0.5 text-xs font-semibold`}>{fhiBadge.label}</Badge>
-                <p className="mt-1 text-center text-[10px] text-muted-foreground">% of time above safe posture threshold</p>
+                <p className="mt-1 text-center text-[10px] text-muted-foreground">Time above safe posture</p>
               </CardContent>
             </Card>
 
-            {/* Correction Latency */}
+            {/* Recovery Time */}
             <Card className="animate-fade-in border-border/50 shadow-xl shadow-primary/5" style={{ animationDelay: "0.45s" }}>
               <CardContent className="flex flex-col items-center py-5 px-3">
                 <Clock className="mb-1 h-5 w-5 text-primary" />
-                <p className="text-xs text-muted-foreground">Avg Correction Time</p>
+                <p className="text-xs text-muted-foreground">Recovery Time</p>
                 <div className="mt-1 flex items-center gap-1">
                   <span className="text-3xl font-bold text-foreground">{avgCorrectionTime}</span>
                   <span className="text-sm text-muted-foreground">sec</span>
@@ -113,7 +160,7 @@ const Dashboard = () => {
                   <ArrowDown className="h-3 w-3" />
                   <span className="text-xs font-medium">Improving</span>
                 </div>
-                <p className="mt-1 text-center text-[10px] text-muted-foreground">Time to return to neutral after alert</p>
+                <p className="mt-1 text-center text-[10px] text-muted-foreground">Avg time to neutral</p>
               </CardContent>
             </Card>
 
@@ -149,11 +196,31 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Health Reports */}
+        <Card className="animate-fade-in border-border/50 shadow-xl shadow-primary/5" style={{ animationDelay: "0.58s" }}>
+          <CardContent className="py-5">
+            <div className="mb-3 flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" />
+              <p className="text-sm font-medium text-foreground">Health Reports</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" onClick={() => handleGenerate("Weekly")}>
+                Generate Weekly
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleGenerate("Monthly")}>
+                Generate Monthly
+              </Button>
+            </div>
+            <p className="mt-3 text-[11px] text-muted-foreground">Last generated: {lastGenerated}</p>
+          </CardContent>
+        </Card>
+
         {/* View Reports */}
         <Button onClick={() => navigate("/reports")} className="w-full animate-fade-in" style={{ animationDelay: "0.6s" }}>
           View Reports
         </Button>
       </div>
+      <BottomNav />
     </div>
   );
 };

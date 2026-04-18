@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from "recharts";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, TrendingUp } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
 
 const dailyData = [
   { hour: "8AM", angle: 12 }, { hour: "9AM", angle: 18 }, { hour: "10AM", angle: 25 },
@@ -58,7 +59,7 @@ const Reports = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background px-4 py-6">
+    <div className="min-h-screen bg-background px-4 py-6 pb-24">
       <div className="mx-auto max-w-md space-y-5">
         {/* Header */}
         <div className="flex items-center gap-3 animate-fade-in">
@@ -84,6 +85,16 @@ const Reports = () => {
             </Card>
           ))}
         </div>
+
+        {/* Insight Banner */}
+        <Card className="animate-fade-in border-border/50 shadow-lg shadow-primary/5" style={{ animationDelay: "0.15s" }}>
+          <CardContent className="flex items-center gap-3 py-4">
+            <TrendingUp className="h-5 w-5 shrink-0 text-primary" />
+            <p className="text-sm text-foreground">
+              Your posture improved by <span className="font-semibold text-primary">12%</span> this week
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Daily Report */}
         <Card className="animate-fade-in border-border/50 shadow-xl shadow-primary/5" style={{ animationDelay: "0.2s" }}>
@@ -183,6 +194,7 @@ const Reports = () => {
           </CardContent>
         </Card>
       </div>
+      <BottomNav />
     </div>
   );
 };
