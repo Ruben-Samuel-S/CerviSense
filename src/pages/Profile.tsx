@@ -51,7 +51,7 @@ const Profile = () => {
   }, [profile, calculatedBmi]);
 
   const v = (val?: string | number | null) =>
-    val === undefined || val === null || val === "" ? "—" : String(val);
+    val === undefined || val === null || val === "" ? "Not set" : String(val);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -69,13 +69,13 @@ const Profile = () => {
           <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Details</p>
           <div className="divide-y divide-border/50">
             <Row label="Age" value={v(profile?.age)} />
-            <Row label="Height" value={profile?.height ? `${profile.height} cm` : "—"} />
-            <Row label="Weight" value={profile?.weight ? `${profile.weight} kg` : "—"} />
+            <Row label="Height" value={profile?.height ? `${profile.height} cm` : "Not set"} />
+            <Row label="Weight" value={profile?.weight ? `${profile.weight} kg` : "Not set"} />
             <Row
               label="Screen Time"
-              value={profile?.screenTime != null ? `${profile.screenTime} hrs/day` : "—"}
+              value={profile?.screenTime != null ? `${profile.screenTime} hrs/day` : "Not set"}
             />
-            <Row label="BMI" value={calculatedBmi != null ? String(calculatedBmi) : "—"} />
+            <Row label="BMI" value={calculatedBmi != null ? String(calculatedBmi) : "Not set"} />
           </div>
         </Card>
 
