@@ -1,87 +1,53 @@
 
-# Add Clinical Metrics to Dashboard and Enhance Reports
 
-## Overview
-Add four new clinical posture metric cards to the Dashboard in a 2x2 grid, and add four new charts to the Reports page -- all using mock data and the existing dark medical-tech design system.
+## Multi-Step Registration UI for CerviSense
 
----
+Replace the current single-page `ProfileSetup` with a clean 3-step wizard that collects richer profile data for AI personalization, persists to `localStorage`, and shows a confirmation screen before routing to the dashboard.
 
-## Dashboard Changes (`src/pages/Dashboard.tsx`)
+### Approach
 
-### New Mock Data
-Add constants for the four clinical metrics:
-- `forwardHeadIndex = 32` (percentage)
-- `avgCorrectionTime = 4.2` (seconds)
-- `activeWearTime = 4.5` (hours out of 6 target)
-- `weeklyImprovement = 12` (percent)
-- Small sparkline data array for weekly improvement (7 data points)
+Rebuild `src/pages/ProfileSetup.tsx` as a stateful multi-step form. Keep the existing dark medical-tech theme (navy bg, slate cards, teal accent) — no new design system, no heavy animation. Reuse existing shadcn components (`Card`, `Input`, `Select`, `Slider`, `Switch`, `Button`, `Progress`, `Label`) and `lucide-react` icons.
 
-### New "Clinical Metrics" Section
-Insert below the Posture Trend chart card and above the "View Reports" button:
+### Step Structure
 
-1. **Section header** -- "Clinical Metrics" label styled like existing section titles
-2. **2x2 responsive grid** (`grid grid-cols-2 gap-3`) containing:
+**Progress indicator** — top of card: `Step X of 3` label + thin `Progress` bar (33 / 66 / 100). Section icon + title under it.
 
-**Card 1 -- Forward Head Index (FHI)**
-- Icon: `AlertTriangle` from lucide-react
-- Large percentage value display
-- Small description: "% of time above safe posture threshold"
-- Color-coded Badge: Green (<25%), Yellow (25-50%), Red (>50%)
-- Same card styling as existing cards
+**Step 1 — Basic Info** (User icon)
+- Name (text, required)
+- Age (number, 10–80, validated)
+- Sex (Select: Male / Female / Prefer not to say)
 
-**Card 2 -- Avg Correction Time**
-- Icon: `Clock` from lucide-react
-- Value in seconds with "sec" unit
-- Small description: "Time to return to neutral after alert"
-- Trend arrow indicator (ArrowDown in teal = improving, ArrowUp in red = worsening)
+**Step 2 — Body Metrics** (Activity icon)
+- Height cm (number, 100–220)
+- Weight kg (number, 30–150)
+- Live-calculated BMI shown in a small inline readout below inputs (`weight / (height/100)²`, 1 decimal) with category label (Underweight / Normal / Overweight / Obese)
 
-**Card 3 -- Active Wear Time**
-- Icon: `Watch` from lucide-react
-- Hours display (e.g., "4.5 hrs")
-- Progress bar showing progress toward 6hr daily goal (using the existing `Progress` component)
-- Small text: "of 6 hr goal"
+**Step 3 — Usage Pattern** (Monitor icon)
+- Screen time hrs/day — `Slider` 0–16 with current value displayed
+- Work type — Select: Student / Office / Mixed
+- Neck pain — `Switch` (Yes/No)
 
-**Card 4 -- Posture Improvement**
-- Icon: `TrendingUp` from lucide-react
-- Percentage value colored teal (positive) or red (negative)
-- "vs last week" label
-- Tiny inline sparkline using Recharts `LineChart` (no axes, just the line, ~40px tall)
+### Navigation
 
-All four cards use the existing Card/CardContent components with `border-border/50 shadow-xl shadow-primary/5` classes and staggered `animate-fade-in` delays.
+- Back / Next buttons at card footer (Back hidden on step 1)
+- Next validates current step's fields before advancing; inline error text under invalid fields
+- On step 3, Next becomes "Create Profile" → validates → saves → shows confirmation
 
----
+### Persistence & Confirmation
 
-## Reports Page Changes (`src/pages/Reports.tsx`)
+- Single `formData` state object holding all fields
+- On submit: `localStorage.setItem("userProfile", JSON.stringify({...formData, bmi}))`
+- Confirmation screen replaces the form: CheckCircle2 icon (teal), heading "Profile created successfully", subtext, "Go to Dashboard" button → navigates to `/dashboard`
 
-### New Mock Data Arrays
-- `fhiTrendData` -- 7 daily FHI percentage values
-- `correctionLatencyData` -- 7 daily avg correction times
-- `complianceData` -- 7 daily wear hours
-- `strainCorrelationData` -- 7 data points with `strain` and `fhi` fields
+### Files Modified
 
-### New Charts Section
-Add below the existing Weekly Report card:
-
-1. **FHI Trend Over Time** -- Line chart (same styling as weekly report chart), dataKey `fhi`, teal stroke
-2. **Correction Latency Trend** -- Line chart, dataKey `latency`, uses a yellow/amber stroke to differentiate
-3. **Compliance Duration** -- Bar chart showing daily wear hours, teal bars, with a ReferenceLine at 6hrs for the goal
-4. **Strain Score Correlation** -- Line chart with two lines (strain + fhi) to show correlation, using two different colors
-
-Each chart wrapped in the same Card component with matching styles, staggered animation delays.
-
-### Updated Stats Row
-Expand the top stats grid from 3 to include additional metric: add "FHI Avg" stat card showing "32%".
-
----
-
-## Files Modified
 | File | Change |
-|------|--------|
-| `src/pages/Dashboard.tsx` | Add clinical metrics section with 4 cards in 2x2 grid, import Progress component and additional icons |
-| `src/pages/Reports.tsx` | Add 4 new chart cards with mock data, update stats row, import ReferenceLine from recharts |
+|---|---|
+| `src/pages/ProfileSetup.tsx` | Rewrite as 3-step wizard with progress, validation, BMI calc, localStorage save, confirmation screen |
 
-## No Changes To
-- Design system / CSS variables
-- Other pages (Login, Register, ProfileSetup)
-- Routing or authentication
-- Any UI component files
+### Out of Scope (unchanged)
+- Routing in `App.tsx` (already routes `/profile-setup` → ProfileSetup → `/dashboard`)
+- Login, Register, Dashboard, Reports pages
+- Design tokens / Tailwind config / global CSS
+- No backend, no auth changes
+
