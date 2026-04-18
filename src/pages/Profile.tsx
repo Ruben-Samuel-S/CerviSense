@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
@@ -34,6 +34,22 @@ const Profile = () => {
     }
   }, []);
 
+  const calculatedBmi = useMemo(() => {
+    const height = profile?.height ? parseFloat(profile.height) : null;
+    const weight = profile?.weight ? parseFloat(profile.weight) : null;
+    if (!height || !weight || height <= 0 || weight <= 0) return null;
+    const bmi = weight / Math.pow(height / 100, 2);
+    if (!isFinite(bmi)) return null;
+    return Math.round(bmi * 10) / 10;
+  }, [profile?.height, profile?.weight]);
+
+  const personalizationMessage = useMemo(() => {
+    if (!profile || !calculatedBmi || profile.screenTime == null) {
+      return "Your posture threshold is personalized based on your profile and usage.";
+    }
+    return `Based on your daily screen time of ${profile.screenTime} hrs/day and BMI of ${calculatedBmi}, your posture threshold is optimized for better spinal health.`;
+  }, [profile, calculatedBmi]);
+
   const v = (val?: string | number | null) =>
     val === undefined || val === null || val === "" ? "—" : String(val);
 
@@ -59,7 +75,7 @@ const Profile = () => {
               label="Screen Time"
               value={profile?.screenTime != null ? `${profile.screenTime} hrs/day` : "—"}
             />
-            <Row label="BMI" value={profile?.bmi != null ? String(profile.bmi) : "—"} />
+            <Row label="BMI" value={calculatedBmi != null ? String(calculatedBmi) : "—"} />
           </div>
         </Card>
 
@@ -71,7 +87,10 @@ const Profile = () => {
             <div>
               <p className="text-sm font-semibold text-foreground">Personalization Insight</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Your posture threshold is personalized based on your profile and usage.
+                {personalizationMessage}
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Recommended posture angle: 22°
               </p>
             </div>
           </div>
