@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Activity, TrendingUp, AlertTriangle, Clock, Watch, ArrowDown, FileText } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { usePostureData } from "@/hooks/use-posture-data";
+import { generatePostureReport, ReportData } from "@/lib/generate-report";
 
 const personalizedThreshold = 20;
 
@@ -48,14 +49,59 @@ const Dashboard = () => {
     loading,
   } = usePostureData(2000);
 
+  // Load user profile for PDF report
+  const userProfile = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("userProfile");
+      if (raw) return JSON.parse(raw);
+    } catch { /* noop */ }
+    return {};
+  }, []);
+
+  const avgAngle = useMemo(() => {
+    if (trendData.length === 0) return currentAngle;
+    return Math.round(trendData.reduce((s, d) => s + d.angle, 0) / trendData.length * 10) / 10;
+  }, [trendData, currentAngle]);
+
   const status = getStatus(currentAngle);
   const risk = getRiskLevel(currentAngle);
   const fhiBadge = getFhiBadge(neckRisk);
 
   const handleGenerate = (type: "Weekly" | "Monthly") => {
-    const ts = new Date().toLocaleString();
-    setLastGenerated(`${type} • ${ts}`);
-    toast.success(`${type} report generated`);
+    try {
+      const h = userProfile.height ? parseFloat(userProfile.height) : null;
+      const w = userProfile.weight ? parseFloat(userProfile.weight) : null;
+      const bmi =
+        h && w && h > 0 && w > 0
+          ? (Math.round((w / Math.pow(h / 100, 2)) * 10) / 10).toString()
+          : "N/A";
+
+      const reportData: ReportData = {
+        reportType: type,
+        userName: userProfile.name || "CerviSense User",
+        userAge: userProfile.age ? `${userProfile.age} yrs` : "N/A",
+        userHeight: userProfile.height ? `${userProfile.height} cm` : "N/A",
+        userWeight: userProfile.weight ? `${userProfile.weight} kg` : "N/A",
+        userScreenTime: userProfile.screenTime != null ? `${userProfile.screenTime} hrs/day` : "N/A",
+        userBmi: bmi,
+        avgAngle,
+        healthScore,
+        neckRisk,
+        activeWearTime,
+        postureImprovement,
+        recoveryTime,
+        trendData,
+      };
+
+      generatePostureReport(reportData);
+
+      const ts = new Date().toLocaleString();
+      setLastGenerated(`${type} • ${ts}`);
+      toast.success(`${type} report downloaded as PDF`);
+    } catch (err) {
+      toast.error("Failed to generate report");
+      console.error(err);
+    }
   };
 
   if (loading) {
