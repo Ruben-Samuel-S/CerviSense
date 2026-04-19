@@ -1,12 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Clock, BarChart3, Settings, User } from "lucide-react";
+import { Home, Clock, BarChart3, Trophy, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { label: "Dashboard", icon: Home, path: "/dashboard" },
   { label: "History", icon: Clock, path: "/history" },
   { label: "Reports", icon: BarChart3, path: "/reports" },
-  { label: "Settings", icon: Settings, path: "/settings" },
+  { label: "Challenge", icon: Trophy, path: "/challenge" },
   { label: "Profile", icon: User, path: "/profile" },
 ];
 
