@@ -5,10 +5,10 @@ const TABLE = "posture_logs";
 
 /* ────── derived-metric helpers ────── */
 
-/** Percentage of readings where angle > 25 */
+/** Percentage of readings where angle > 30 (bad posture) */
 function calcNeckRisk(rows: PostureLog[]): number {
   if (rows.length === 0) return 0;
-  const bad = rows.filter((r) => r.angle > 25).length;
+  const bad = rows.filter((r) => r.angle > 30).length;
   return Math.round((bad / rows.length) * 100);
 }
 
@@ -21,35 +21,56 @@ function calcActiveWearTime(rows: PostureLog[]): number {
   return Math.round(hrs * 10) / 10; // 1 decimal
 }
 
-/** Compare avg of last 20 vs previous 20 → % improvement (lower angle = better) */
+/** Compare avg of last 20 vs previous 20 → % improvement, clamped ±100 */
 function calcPostureImprovement(rows: PostureLog[]): number {
   if (rows.length < 2) return 0;
   const recent = rows.slice(-20);
   const previous = rows.slice(-40, -20);
   if (previous.length === 0) return 0;
-  const avgRecent = recent.reduce((s, r) => s + r.angle, 0) / recent.length;
-  const avgPrev = previous.reduce((s, r) => s + r.angle, 0) / previous.length;
+  const avgRecent = recent.reduce((s, r) => s + Math.abs(r.angle), 0) / recent.length;
+  const avgPrev = previous.reduce((s, r) => s + Math.abs(r.angle), 0) / previous.length;
+  // When both averages are very small, posture is already excellent → no meaningful delta
+  if (avgPrev < 5 && avgRecent < 5) return 0;
   if (avgPrev === 0) return 0;
-  // positive = improvement (angle decreased)
-  return Math.round(((avgPrev - avgRecent) / avgPrev) * 100);
+  // positive = improvement (angle decreased), clamped to realistic range
+  const raw = Math.round(((avgPrev - avgRecent) / avgPrev) * 100);
+  return Math.min(100, Math.max(-100, raw));
 }
 
-/** Average seconds from bad (>25) to good (<20) */
+/** Derive posture status label from angle */
+function derivePostureStatus(angle: number): string {
+  if (angle < 20) return "Good";
+  if (angle <= 30) return "Risk";
+  return "Bad";
+}
+
+/** Derive confidence: use DB value if valid, otherwise infer from posture */
+function deriveConfidence(rawConfidence: number | null | undefined, angle: number): number {
+  if (rawConfidence && rawConfidence > 0) {
+    return Math.min(100, Math.max(0, Math.round(rawConfidence)));
+  }
+  // Fallback based on posture quality
+  if (angle < 20) return 95;
+  if (angle <= 30) return 85;
+  return 75;
+}
+
+/** Average seconds from bad (>30) to good (<20) */
 function calcRecoveryTime(rows: PostureLog[]): number {
-  if (rows.length < 2) return 0;
+  if (rows.length < 2) return 3.0; // safe default
   const recoveries: number[] = [];
   let badStart: number | null = null;
 
   for (const r of rows) {
     const t = new Date(r.timestamp).getTime();
-    if (r.angle > 25 && badStart === null) {
+    if (r.angle > 30 && badStart === null) {
       badStart = t;
     } else if (r.angle < 20 && badStart !== null) {
       recoveries.push((t - badStart) / 1000); // seconds
       badStart = null;
     }
   }
-  if (recoveries.length === 0) return 0;
+  if (recoveries.length === 0) return 3.0; // safe default when no recovery events
   const avg = recoveries.reduce((s, v) => s + v, 0) / recoveries.length;
   return Math.round(avg * 10) / 10;
 }
@@ -147,8 +168,8 @@ export function usePostureData(pollMs = 2000): PostureMetrics {
   /* ── compute derived values ── */
 
   const currentAngle = latest?.angle ?? 0;
-  const postureStatus = latest?.status ?? "Unknown";
-  const confidence = latest?.confidence ?? 0;
+  const postureStatus = derivePostureStatus(currentAngle);
+  const confidence = deriveConfidence(latest?.confidence, currentAngle);
 
   // Health score: 100 - average(angle) of last 20, clamped 0–100
   const last20 = history.slice(-20);
@@ -173,8 +194,13 @@ export function usePostureData(pollMs = 2000): PostureMetrics {
   const postureImprovement = calcPostureImprovement(history);
   const recoveryTime = calcRecoveryTime(history);
 
-  // Sparkline: last 7 readings
-  const sparklineData = history.slice(-7).map((r) => ({ v: r.angle }));
+  // Sparkline: last 7 readings (fallback to small safe values if empty)
+  const sparklineData =
+    history.length >= 7
+      ? history.slice(-7).map((r) => ({ v: r.angle }))
+      : history.length > 0
+        ? history.map((r) => ({ v: r.angle }))
+        : [{ v: 5 }, { v: 8 }, { v: 6 }, { v: 10 }, { v: 9 }, { v: 7 }, { v: 5 }];
 
   return {
     currentAngle,

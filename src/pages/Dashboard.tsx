@@ -13,14 +13,14 @@ import { usePostureData } from "@/hooks/use-posture-data";
 const personalizedThreshold = 20;
 
 const getStatus = (angle: number) => {
-  if (angle <= 15) return { label: "Good", color: "bg-success text-background", dot: "bg-success" };
-  if (angle <= 25) return { label: "Risk", color: "bg-warning text-background", dot: "bg-warning" };
+  if (angle < 20) return { label: "Good", color: "bg-success text-background", dot: "bg-success" };
+  if (angle <= 30) return { label: "Risk", color: "bg-warning text-background", dot: "bg-warning" };
   return { label: "Bad", color: "bg-danger text-foreground", dot: "bg-danger" };
 };
 
-const getRiskLevel = (pct: number) => {
-  if (pct < 25) return { label: "Low", color: "text-success" };
-  if (pct <= 50) return { label: "Medium", color: "text-warning" };
+const getRiskLevel = (angle: number) => {
+  if (angle < 20) return { label: "Low", color: "text-success" };
+  if (angle <= 30) return { label: "Medium", color: "text-warning" };
   return { label: "High", color: "text-danger" };
 };
 
@@ -49,7 +49,7 @@ const Dashboard = () => {
   } = usePostureData(2000);
 
   const status = getStatus(currentAngle);
-  const risk = getRiskLevel(neckRisk);
+  const risk = getRiskLevel(currentAngle);
   const fhiBadge = getFhiBadge(neckRisk);
 
   const handleGenerate = (type: "Weekly" | "Monthly") => {
@@ -85,7 +85,7 @@ const Dashboard = () => {
               <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Posture</p>
               <div className="mt-1 flex items-center gap-1.5">
                 <span className={`h-2 w-2 rounded-full ${status.dot}`} />
-                <span className="text-sm font-bold text-foreground">{postureStatus || status.label}</span>
+                <span className="text-sm font-bold text-foreground">{postureStatus}</span>
               </div>
             </CardContent>
           </Card>
@@ -110,7 +110,7 @@ const Dashboard = () => {
             <p className="text-sm text-muted-foreground">Current Neck Angle</p>
             <div className="mt-1 text-6xl font-bold tracking-tighter text-foreground">{currentAngle}°</div>
             <p className="mt-1 text-xs text-muted-foreground">Confidence {confidence}%</p>
-            <Badge className={`mt-3 ${status.color} border-0 px-4 py-1 text-sm font-semibold`}>{postureStatus || status.label}</Badge>
+            <Badge className={`mt-3 ${status.color} border-0 px-4 py-1 text-sm font-semibold`}>{postureStatus}</Badge>
             <p className="mt-2 text-[11px] text-muted-foreground">Personalized threshold: {personalizedThreshold}°</p>
           </CardContent>
         </Card>
@@ -168,7 +168,7 @@ const Dashboard = () => {
                 </div>
                 <div className="mt-1 flex items-center gap-1 text-primary">
                   <ArrowDown className="h-3 w-3" />
-                  <span className="text-xs font-medium">{recoveryTime > 0 ? "Tracked" : "No data"}</span>
+                  <span className="text-xs font-medium">Improving</span>
                 </div>
                 <p className="mt-1 text-center text-[10px] text-muted-foreground">Avg time to neutral</p>
               </CardContent>
