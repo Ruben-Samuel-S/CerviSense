@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="docs/logo.png" width="120"/>
+  <img src="docs/logo.png" width="120" style="border-radius:50%;"/>
 </p>
 
 <h1 align="center">CerviSense</h1>
 
 <p align="center">
-  Wearable Cervical Spine Monitoring System with Real-Time Posture Feedback
+Wearable Cervical Spine Monitoring System with Real-Time Posture Feedback
 </p>
 
 ---
