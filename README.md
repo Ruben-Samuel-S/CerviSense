@@ -193,6 +193,8 @@ The dashboard will launch in your browser with hot-reload enabled.
 npm run build
 ```
 
+---
+
 ## Contributing
 
 Contributions, bug reports, and feature suggestions are welcome. Please open issues or submit pull requests to help improve the system.
