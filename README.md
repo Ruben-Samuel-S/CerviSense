@@ -171,7 +171,27 @@ This project is developed as a biomedical engineering prototype. AI components a
 ```sh
 git clone https://github.com/Ruben-Samuel-S/cervisense.git
 cd cervisense
+```
 
+#### Install Frontend Dependencies
+
+```sh
+npm install
+```
+
+#### Start Development Server
+
+```sh
+npm run dev
+```
+
+The dashboard will launch in your browser with hot-reload enabled.
+
+#### Build for Production
+
+```sh
+npm run build
+```
 
 ## Contributing
 
