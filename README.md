@@ -28,7 +28,7 @@ CerviSense addresses this by providing real-time posture tracking and feedback u
 
 ## System Architecture
 
-![System Architecture](docs/architecture.png)
+![System Architecture](docs/architecture_Cervisense.png)
 
 ### Hardware Components
 - ESP32 microcontroller (data acquisition & processing)
