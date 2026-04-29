@@ -109,18 +109,9 @@ The CerviSense dashboard provides real-time visualization of cervical posture, h
 
 ## UI Preview
 
-<div align="center" style="overflow-x:auto; white-space:nowrap; padding:10px 0;">
+![CerviSense Dashboard](docs/ui-demo.gif)
 
-  <img src="docs/ui-1.png" height="350" style="display:inline-block; margin-right:12px;"/>
-  <img src="docs/ui-2.png" height="350" style="display:inline-block; margin-right:12px;"/>
-  <img src="docs/ui-3.png" height="350" style="display:inline-block; margin-right:12px;"/>
-  <img src="docs/ui-4.png" height="350" style="display:inline-block; margin-right:12px;"/>
-  <img src="docs/ui-5.png" height="350" style="display:inline-block; margin-right:12px;"/>
-  <img src="docs/ui-6.png" height="350" style="display:inline-block; margin-right:12px;"/>
-  <img src="docs/ui-7.png" height="350" style="display:inline-block; margin-right:12px;"/>
-  <img src="docs/ui-8.png" height="350" style="display:inline-block;"/>
-
-</div>
+---
 
 ## AI Integration (In Progress)
 
