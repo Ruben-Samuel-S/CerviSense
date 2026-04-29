@@ -109,7 +109,7 @@ The CerviSense dashboard provides real-time visualization of cervical posture, h
 
 ## UI Preview
 
-![CerviSense Dashboard](docs/ui-demo.gif)
+![CerviSense Dashboard](docs/ui_demo.gif)
 
 ---
 
