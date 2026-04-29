@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.png" width="120" style="border-radius:50%;"/>
+  <img src="docs/logo.png" width="120" style="border:2px solid #ccc;"/>
 </p>
 
 <h1 align="center">CerviSense</h1>
