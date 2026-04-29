@@ -107,16 +107,19 @@ The CerviSense dashboard provides real-time visualization of cervical posture, h
 
 ## Dashboard Screens
 
-<div style="display:flex; overflow-x:auto; gap:12px; padding:10px 0;">
+## UI Preview
 
-  <img src="docs/ui-1.png" width="280"/>
-  <img src="docs/ui-2.png" width="280"/>
-  <img src="docs/ui-3.png" width="280"/>
-  <img src="docs/ui-4.png" width="280"/>
-  <img src="docs/ui-5.png" width="280"/>
-  <img src="docs/ui-6.png" width="280"/>
-  <img src="docs/ui-7.png" width="280"/>
-  <img src="docs/ui-8.png" width="280"/>
+<div align="center" style="overflow-x:auto; white-space:nowrap; padding:10px 0;">
+
+  <img src="docs/ui-1.png" height="350" style="display:inline-block; margin-right:12px;"/>
+  <img src="docs/ui-2.png" height="350" style="display:inline-block; margin-right:12px;"/>
+  <img src="docs/ui-3.png" height="350" style="display:inline-block; margin-right:12px;"/>
+  <img src="docs/ui-4.png" height="350" style="display:inline-block; margin-right:12px;"/>
+  <img src="docs/ui-5.png" height="350" style="display:inline-block; margin-right:12px;"/>
+  <img src="docs/ui-6.png" height="350" style="display:inline-block; margin-right:12px;"/>
+  <img src="docs/ui-7.png" height="350" style="display:inline-block; margin-right:12px;"/>
+  <img src="docs/ui-8.png" height="350" style="display:inline-block;"/>
+
 </div>
 
 ## AI Integration (In Progress)
